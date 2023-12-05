@@ -10,6 +10,7 @@ public class InputReaderSO : ScriptableObject, Controls.IPlayerActions
     public event Action<bool> OnPrimaryFireEvent;
     public event Action<Vector2> OnMoveEvent;
     public Vector2 InputDirection {get; private set;}
+    public Vector2 MousePosition {get; private set;}
 
     private void OnEnable()
     {
@@ -34,5 +35,10 @@ public class InputReaderSO : ScriptableObject, Controls.IPlayerActions
             OnPrimaryFireEvent?.Invoke(true);
         else if(context.canceled)
             OnPrimaryFireEvent?.Invoke(false);
+    }
+
+    public void OnAim(InputAction.CallbackContext context)
+    {
+        MousePosition = context.ReadValue<Vector2>();
     }
 }
