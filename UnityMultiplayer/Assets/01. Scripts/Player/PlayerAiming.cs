@@ -22,7 +22,7 @@ public class PlayerAiming : NetworkBehaviour
         if(IsOwner == false)
             return;
 
-        Vector2 lookAt = mainCamera.ScreenToWorldPoint(inputReader.MousePosition);
+        Vector2 lookAt = mainCamera.ScreenToWorldPoint(inputReader.MousePosition) - transform.position;
         float angle = Mathf.Atan2(lookAt.y, lookAt.x) * Mathf.Rad2Deg - 90f;
         turretTransform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
     }
