@@ -56,6 +56,11 @@ public class ProjectileLauncher : NetworkBehaviour
 
         GameObject projectile = Instantiate(clientProjectilePrefab, spawnPos, Quaternion.identity);
         projectile.transform.up = direction;
+
+        Physics2D.IgnoreCollision(playerCollider, projectile.GetComponent<Collider2D>());
+
+        if(projectile.TryGetComponent<Rigidbody2D>(out Rigidbody2D rb2d))
+            rb2d.velocity = projectile.transform.up * projectileSpeed;
     }
 
     private void HandlePrimaryFire(bool performed)
@@ -68,10 +73,18 @@ public class ProjectileLauncher : NetworkBehaviour
         if(performed == false)
             return;
 
+        if(Time.time < (1 / fireRate + lastFireTime))
+            return;
+
         PrimaryFireServerRPC(firePosition.position, firePosition.up);
         SpawnDummyProjectile(firePosition.position, firePosition.up);
+        
+        lastFireTime = Time.time;
     }
 
+    // ServerRPC => 클라이언트가 서버에 있는 함수 호출
+    // ClientRPC => 서버가 클라이언트에 있는 함수 호출
+    // 클라가 서버에게 ServerRPC로 요청 -> 서버가 모든 클라들에게 ClientRPC로 동기화하는 컨셉
     [ServerRpc]
     private void PrimaryFireServerRPC(Vector3 spawnPos, Vector3 direction)
     {
@@ -79,6 +92,9 @@ public class ProjectileLauncher : NetworkBehaviour
         projectile.transform.up = direction;
 
         Physics2D.IgnoreCollision(playerCollider, projectile.GetComponent<Collider2D>());
+
+        if (projectile.TryGetComponent<Rigidbody2D>(out Rigidbody2D rb2d))
+            rb2d.velocity = projectile.transform.up * projectileSpeed;
 
         PrimaryFireClientRPC(spawnPos, direction);
     }
