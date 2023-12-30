@@ -4,7 +4,7 @@ using UnityEngine;
 public class ClientSingleton : MonoBehaviour
 {
     private static ClientSingleton instance = null;
-    public ClientSingleton Instance {
+    public static ClientSingleton Instance {
         get {
             if(instance == null)
                 instance = FindObjectOfType<ClientSingleton>();

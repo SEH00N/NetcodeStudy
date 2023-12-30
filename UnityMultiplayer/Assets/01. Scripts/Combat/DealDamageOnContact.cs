@@ -20,9 +20,9 @@ public class DealDamageOnContact : MonoBehaviour
         if(other.TryGetComponent<NetworkObject>(out NetworkObject networkObj) == false)
             return;
 
+        Debug.Log(other.name);
         if(networkObj.OwnerClientId == ownerClientID)
             return;
-
         if (other.TryGetComponent<Health>(out Health health))
             health?.TakeDamage(damage);
     }
