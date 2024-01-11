@@ -53,8 +53,7 @@
         "Obj/": true,
         "ProjectSettings/": true,
         "temp/": true,
-        "Temp/": true,
-        "*.csproj": true
+        "Temp/": true
     },
     "dotnet.defaultSolution": "KitchenChaos.sln",
     "explorerExclude.backup": {}
