@@ -9,6 +9,7 @@ public class InputReaderSO : ScriptableObject, IPlayerActions
 	private Controls controls;
 
     public event Action OnFireEvent;
+    public event Action OnInteractEvent;
 
     public Vector2 MoveInput { get; private set; }
 
@@ -27,6 +28,12 @@ public class InputReaderSO : ScriptableObject, IPlayerActions
     {
         if(context.performed)
             OnFireEvent?.Invoke();
+    }
+
+    public void OnInteract(InputAction.CallbackContext context)
+    {
+        if(context.performed)
+            OnInteractEvent?.Invoke();
     }
 
     public void OnMove(InputAction.CallbackContext context)
