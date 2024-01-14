@@ -5,15 +5,15 @@ public class Player : MonoBehaviour, IKitchenObjectParent
 {
     [SerializeField] InputReaderSO inputReader = null;
 
-    [Space(10f)]
+    [Space(10f), Header("Property")]
     [SerializeField] float moveSpeed = 10f;
     [SerializeField] float rotateSpeed = 10f;
 
-    [Space(10f)]
+    [Space(10f), Header("Player Setting")]
     [SerializeField] float playerHeight = 2f;
     [SerializeField] float playerRadius = 0.7f;
 
-    [Space(10f)]
+    [Space(10f), Header("Interact")]
     [SerializeField] float interactDistance = 2f;
     [SerializeField] LayerMask counterLayer;
 
