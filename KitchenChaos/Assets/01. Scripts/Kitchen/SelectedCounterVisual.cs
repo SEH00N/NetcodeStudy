@@ -3,12 +3,12 @@ using UnityEngine;
 
 public class SelectedCounterVisual : MonoBehaviour
 {
-    private ClearCounter counter;
+    private BaseCounter counter;
     private GameObject visual;
 
     private void Awake()
     {
-        counter = transform.parent.GetComponent<ClearCounter>();
+        counter = transform.parent.GetComponent<BaseCounter>();
         visual = transform.Find("Visual")?.gameObject;
     }
 
@@ -17,7 +17,7 @@ public class SelectedCounterVisual : MonoBehaviour
         DEFINE.Player.OnSelectedCounterChanged += HandleCounterChanged;
     }
 
-    private void HandleCounterChanged(ClearCounter counter)
+    private void HandleCounterChanged(BaseCounter counter)
     {
         visual.SetActive(this.counter == counter);
     }
