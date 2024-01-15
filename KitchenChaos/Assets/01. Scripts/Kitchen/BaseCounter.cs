@@ -5,9 +5,7 @@ public class BaseCounter : MonoBehaviour, IKitchenObjectParent
     [SerializeField] protected Transform counterTopPoint;
     public Transform ParentTrm => counterTopPoint;
 
-    [SerializeField] protected KitchenObjectSO kitchenObjectData;
-
-    protected KitchenObject kitchenObject;
+    private KitchenObject kitchenObject;
     public KitchenObject KitchenObject => kitchenObject;
 
     public bool IsEmpty => (kitchenObject == null);
@@ -23,4 +21,5 @@ public class BaseCounter : MonoBehaviour, IKitchenObjectParent
     }
 
     public virtual void Interact(Player player) {}
+    public virtual void InteractAlternate(Player player) {}
 }

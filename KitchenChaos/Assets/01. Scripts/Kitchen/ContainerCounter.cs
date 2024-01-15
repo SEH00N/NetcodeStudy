@@ -1,19 +1,18 @@
+using System;
 using UnityEngine;
 
 public class ContainerCounter : BaseCounter
 {
+    [SerializeField] KitchenObjectSO kitchenObjectData;
+
+    public event Action OnPlayerGraabedEvent;
+
 	public override void Interact(Player player)
     {
-        base.Interact(player);
+        if(player.IsEmpty == false)
+            return;
 
-        if(kitchenObject == null)
-        {
-            Transform instance = Instantiate(kitchenObjectData.prefab, counterTopPoint);
-            instance.GetComponent<KitchenObject>().SetKitchenObjectParent(this);
-        }
-        else
-        {
-            kitchenObject.SetKitchenObjectParent(player);
-        }
+        KitchenObject.SpawnKitchenObject(kitchenObjectData, this);
+        OnPlayerGraabedEvent?.Invoke();
     }
 }

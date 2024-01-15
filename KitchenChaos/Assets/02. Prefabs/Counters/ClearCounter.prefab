@@ -70,9 +70,9 @@ PrefabInstance:
         type: 3}
       insertIndex: 0
       addedObject: {fileID: 4677476452039059205}
-    - targetCorrespondingSourceObject: {fileID: 3483554113498691076, guid: b8b2e00c85c86e1478c193043ad7b410,
+    - targetCorrespondingSourceObject: {fileID: 3786248872274327259, guid: b8b2e00c85c86e1478c193043ad7b410,
         type: 3}
-      insertIndex: 1
+      insertIndex: -1
       addedObject: {fileID: 4967503297367109919}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 2450752309805034607, guid: b8b2e00c85c86e1478c193043ad7b410,
@@ -112,13 +112,19 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 3024516190134064661}
   m_PrefabAsset: {fileID: 0}
+--- !u!4 &2121837791569092814 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3786248872274327259, guid: b8b2e00c85c86e1478c193043ad7b410,
+    type: 3}
+  m_PrefabInstance: {fileID: 3024516190134064661}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &8881642627888879028
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 1846809485527179281}
+    m_TransformParent: {fileID: 2121837791569092814}
     m_Modifications:
     - target: {fileID: 3984833892277163771, guid: 0004cb1e11ad014419b943c7da960724,
         type: 3}
@@ -128,7 +134,12 @@ PrefabInstance:
     - target: {fileID: 4589716710238282922, guid: 0004cb1e11ad014419b943c7da960724,
         type: 3}
       propertyPath: m_Name
-      value: Selected
+      value: Visual
+      objectReference: {fileID: 0}
+    - target: {fileID: 4589716710238282922, guid: 0004cb1e11ad014419b943c7da960724,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4589716710238282923, guid: 0004cb1e11ad014419b943c7da960724,
         type: 3}
@@ -168,17 +179,17 @@ PrefabInstance:
     - target: {fileID: 4589716710238282923, guid: 0004cb1e11ad014419b943c7da960724,
         type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 4589716710238282923, guid: 0004cb1e11ad014419b943c7da960724,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 4589716710238282923, guid: 0004cb1e11ad014419b943c7da960724,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 4589716710238282923, guid: 0004cb1e11ad014419b943c7da960724,
         type: 3}
@@ -208,35 +219,13 @@ PrefabInstance:
     - target: {fileID: 8489276541531669327, guid: 0004cb1e11ad014419b943c7da960724,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 4589716710238282922, guid: 0004cb1e11ad014419b943c7da960724,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 4781201581145531223}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0004cb1e11ad014419b943c7da960724, type: 3}
---- !u!1 &4967503297367109918 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4589716710238282922, guid: 0004cb1e11ad014419b943c7da960724,
-    type: 3}
-  m_PrefabInstance: {fileID: 8881642627888879028}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &4781201581145531223
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4967503297367109918}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: effd2a9ef5033fb4fa265be36585daec, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!4 &4967503297367109919 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4589716710238282923, guid: 0004cb1e11ad014419b943c7da960724,

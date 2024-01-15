@@ -35,6 +35,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
     private void Start()
     {
         inputReader.OnInteractEvent += HandleOnInteract;
+        inputReader.OnInteractAlternateEvent += HandleOnInteractAlternate;
     }
 
     private void Update()
@@ -59,14 +60,14 @@ public class Player : MonoBehaviour, IKitchenObjectParent
         if(canMove == false)
         {
             Vector3 moveDirX = new Vector3(moveDir.x, 0, 0);
-            canMove = !Physics.CapsuleCast(transform.position, transform.position + Vector3.up * playerHeight, playerRadius, moveDirX, moveDistance);
+            canMove = (moveDir.x != 0) && !Physics.CapsuleCast(transform.position, transform.position + Vector3.up * playerHeight, playerRadius, moveDirX, moveDistance);
 
             if(canMove)
                 moveDir = moveDirX;
             else
             {
                 Vector3 moveDirZ = new Vector3(0, 0, moveDir.z);
-                canMove = !Physics.CapsuleCast(transform.position, transform.position + Vector3.up * playerHeight, playerRadius, moveDirZ, moveDistance);
+                canMove = (moveDir.z != 0) && !Physics.CapsuleCast(transform.position, transform.position + Vector3.up * playerHeight, playerRadius, moveDirZ, moveDistance);
 
                 if(canMove)
                     moveDir = moveDirZ;
@@ -76,15 +77,20 @@ public class Player : MonoBehaviour, IKitchenObjectParent
         if(canMove)
         {
             transform.position += moveDir * Time.fixedDeltaTime * moveSpeed;
-            transform.forward = Vector3.Slerp(transform.forward, moveDir, Time.fixedDeltaTime * rotateSpeed);
         }
 
+        transform.forward = Vector3.Slerp(transform.forward, moveDir, Time.fixedDeltaTime * rotateSpeed);
         IsWalking = moveDir.sqrMagnitude > 0f;
     }
 
     private void HandleOnInteract()
     {
         selectedCounter?.Interact(this);
+    }
+
+    private void HandleOnInteractAlternate()
+    {
+        selectedCounter?.InteractAlternate(this);
     }
 
     private void DetectCounter()
