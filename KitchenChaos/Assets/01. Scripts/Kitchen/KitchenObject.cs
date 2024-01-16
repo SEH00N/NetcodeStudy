@@ -23,10 +23,16 @@ public class KitchenObject : MonoBehaviour
         transform.localPosition = Vector3.zero;
     }
 
-    public void DestrySelf()
+    public void DestroySelf()
     {
         kitchenObjectParent.ClearKitchenObject();
         Destroy(gameObject);
+    }
+
+    public bool TryGetPlate(out PlateKitchenObject plate)
+    {
+        plate = this as PlateKitchenObject;
+        return plate != null;
     }
 
     public static KitchenObject SpawnKitchenObject(KitchenObjectSO data, IKitchenObjectParent parent)

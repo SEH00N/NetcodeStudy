@@ -19,7 +19,20 @@ public class ClearCounter : BaseCounter
         {
             if(player.IsEmpty == false) // player grabbed something
             {
-
+                PlateKitchenObject plate = null;
+                if(player.KitchenObject.TryGetPlate(out plate))
+                {
+                    if(plate.TryAddIngredient(KitchenObject.ObjectData))
+                        KitchenObject.DestroySelf();
+                }
+                else // player grabbed food
+                {
+                    if(KitchenObject.TryGetPlate(out plate))
+                    {
+                        if(plate.TryAddIngredient(player.KitchenObject.ObjectData))
+                            player.KitchenObject.DestroySelf();
+                    }
+                }
             }
             else // player empty
             {

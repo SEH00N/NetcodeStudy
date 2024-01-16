@@ -1,8 +1,14 @@
 using UnityEngine;
+using System.Linq;
+using System.Collections.Generic;
+using System;
 
-public class CuttingCounter : BaseCounter
+public class CuttingCounter : BaseCounter, IProgressable
 {
-    [SerializeField] KitchenObjectSO cutKitchenObjectData;
+    [SerializeField] List<CuttingRecipeSO> cuttingRecipes;
+    
+    public event Action<float, float, bool> OnProgressChangedEvent;
+    private int cuttingProgress = 0;
 
     public override void Interact(Player player)
     {
@@ -10,7 +16,13 @@ public class CuttingCounter : BaseCounter
         {
             if(player.IsEmpty == false) // player grabbed something
             {
-                player.KitchenObject.SetKitchenObjectParent(this); // change parent
+                if(GetRecipe(player.KitchenObject.ObjectData, out CuttingRecipeSO recipe)) // can cutting
+                {
+                    player.KitchenObject.SetKitchenObjectParent(this); // change parent
+                    cuttingProgress = 0;
+
+                    OnProgressChangedEvent?.Invoke(cuttingProgress, recipe.cuttingProgress, true);
+                }
             }
             else // player grabbed nothing
             {
@@ -21,7 +33,11 @@ public class CuttingCounter : BaseCounter
         {
             if(player.IsEmpty == false) // player grabbed something
             {
-
+                if(player.KitchenObject.TryGetPlate(out PlateKitchenObject plate))
+                {
+                    if(plate.TryAddIngredient(KitchenObject.ObjectData))
+                        KitchenObject.DestroySelf();
+                }
             }
             else // player empty
             {
@@ -32,10 +48,22 @@ public class CuttingCounter : BaseCounter
 
     public override void InteractAlternate(Player player)
     {
-        if(IsEmpty == false) // has kitchen object
+        if(IsEmpty == false && GetRecipe(KitchenObject.ObjectData, out CuttingRecipeSO recipe)) // has kitchen object and recipe
         {
-            KitchenObject.DestrySelf();
-            KitchenObject.SpawnKitchenObject(cutKitchenObjectData, this);
+            cuttingProgress++;
+            OnProgressChangedEvent?.Invoke(cuttingProgress, recipe.cuttingProgress, false);
+
+            if(cuttingProgress >= recipe.cuttingProgress)
+            {
+                KitchenObject.DestroySelf();
+                KitchenObject.SpawnKitchenObject(recipe.output, this);
+            }
         }
+    }
+
+    private bool GetRecipe(KitchenObjectSO input, out CuttingRecipeSO recipe)
+    {
+        recipe = cuttingRecipes.Find(i => i.input == input);
+        return (recipe != null);
     }
 }

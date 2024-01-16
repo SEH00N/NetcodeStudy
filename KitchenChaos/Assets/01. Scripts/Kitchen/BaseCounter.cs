@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using UnityEngine;
 
 public class BaseCounter : MonoBehaviour, IKitchenObjectParent
@@ -22,4 +24,10 @@ public class BaseCounter : MonoBehaviour, IKitchenObjectParent
 
     public virtual void Interact(Player player) {}
     public virtual void InteractAlternate(Player player) {}
+
+    protected IEnumerator DelayCoroutine(float delay, Action callback)
+    {
+        yield return new WaitForSeconds(delay);
+        callback?.Invoke();
+    }
 }

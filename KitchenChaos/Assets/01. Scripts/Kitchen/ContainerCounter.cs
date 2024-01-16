@@ -12,7 +12,7 @@ public class ContainerCounter : BaseCounter
         if(player.IsEmpty == false)
             return;
 
-        KitchenObject.SpawnKitchenObject(kitchenObjectData, this);
+        KitchenObject.SpawnKitchenObject(kitchenObjectData, player);
         OnPlayerGraabedEvent?.Invoke();
     }
 }
