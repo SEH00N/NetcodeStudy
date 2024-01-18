@@ -18,6 +18,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
     [SerializeField] LayerMask counterLayer;
 
     public event Action<BaseCounter> OnSelectedCounterChanged;
+    public event Action<KitchenObject> OnPickSomethingEvent;
 
     public bool IsWalking { get; private set; }
 
@@ -85,11 +86,17 @@ public class Player : MonoBehaviour, IKitchenObjectParent
 
     private void HandleOnInteract()
     {
+        if(KitchenGameManager.Instance.GamePlaying == false)
+            return;
+
         selectedCounter?.Interact(this);
     }
 
     private void HandleOnInteractAlternate()
     {
+        if (KitchenGameManager.Instance.GamePlaying == false)
+            return;
+
         selectedCounter?.InteractAlternate(this);
     }
 
@@ -124,6 +131,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
     public void SetKitchenObject(KitchenObject kitchenObject)
     {
         this.kitchenObject = kitchenObject;
+        OnPickSomethingEvent?.Invoke(kitchenObject);
     }
 
     public void ClearKitchenObject()

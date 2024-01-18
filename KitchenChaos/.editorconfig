@@ -1,0 +1,4 @@
+[*.{cs,vb}]
+
+# IDE0047: 불필요한 괄호 제거
+dotnet_style_parentheses_in_arithmetic_binary_operators = never

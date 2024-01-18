@@ -20,11 +20,14 @@ public class DeliveryManager : MonoBehaviour
     public event Action<RecipeSO> OnRecipeAddEvent;
     public event Action<int> OnRecipeRemoveEvent;
 
+    public event Action<DeliveryCounter, bool> OnDeliveredEvent;
+
     private float recipeTimer = 0f;
     private float recipeCooldown = 4f;
     
     private int recipeLimit = 4;
 
+    public int SucceedRecipesCount { get; private set; } = 0;
 
     private void Awake()
     {
@@ -47,7 +50,7 @@ public class DeliveryManager : MonoBehaviour
         }
     }
 
-    public void DeliverRecipe(PlateKitchenObject plate)
+    public void DeliverRecipe(PlateKitchenObject plate, DeliveryCounter counter)
     {
         for(int i = 0; i < waitingRecipes.Count; i++)
         {
@@ -58,7 +61,9 @@ public class DeliveryManager : MonoBehaviour
                 {
                     Debug.Log("Recipe Found");
                     waitingRecipes.Remove(r);
+                    SucceedRecipesCount++;
                     OnRecipeRemoveEvent?.Invoke(i);
+                    OnDeliveredEvent?.Invoke(counter, true);
                     
                     return;
                 }
@@ -66,5 +71,6 @@ public class DeliveryManager : MonoBehaviour
         }
 
         Debug.Log("Wrong Recipe");
+        OnDeliveredEvent?.Invoke(counter, false);
     }
 }

@@ -1,14 +1,19 @@
 using UnityEngine;
-using System.Linq;
 using System.Collections.Generic;
 using System;
 
 public class CuttingCounter : BaseCounter, IProgressable
 {
     [SerializeField] List<CuttingRecipeSO> cuttingRecipes;
-    
+
+    public static event Action<CuttingCounter> OnAnyCutEvent;    
     public event Action<float, float, bool> OnProgressChangedEvent;
     private int cuttingProgress = 0;
+
+    new public static void ResetStaticData()
+    {
+        OnAnyCutEvent = null;
+    }
 
     public override void Interact(Player player)
     {
@@ -51,6 +56,7 @@ public class CuttingCounter : BaseCounter, IProgressable
         if(IsEmpty == false && GetRecipe(KitchenObject.ObjectData, out CuttingRecipeSO recipe)) // has kitchen object and recipe
         {
             cuttingProgress++;
+            OnAnyCutEvent?.Invoke(this);
             OnProgressChangedEvent?.Invoke(cuttingProgress, recipe.cuttingProgress, false);
 
             if(cuttingProgress >= recipe.cuttingProgress)
