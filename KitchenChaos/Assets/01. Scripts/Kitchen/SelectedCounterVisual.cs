@@ -14,7 +14,24 @@ public class SelectedCounterVisual : MonoBehaviour
 
 	private void Start()
     {
-        DEFINE.Player.OnSelectedCounterChanged += HandleCounterChanged;
+        if(DEFINE.LocalPlayer != null)
+        {
+            DEFINE.LocalPlayer.OnSelectedCounterChanged -= HandleCounterChanged;
+            DEFINE.LocalPlayer.OnSelectedCounterChanged += HandleCounterChanged;
+        }
+        else
+        {
+            Player.OnAnyPlayerSpawned += HandlePlayerSpawned;
+        }
+    }
+
+    private void HandlePlayerSpawned()
+    {
+        if(DEFINE.LocalPlayer == null)
+            return;
+
+        DEFINE.LocalPlayer.OnSelectedCounterChanged -= HandleCounterChanged;
+        DEFINE.LocalPlayer.OnSelectedCounterChanged += HandleCounterChanged;
     }
 
     private void HandleCounterChanged(BaseCounter counter)

@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System;
+using Unity.Netcode;
 
 public class CuttingCounter : BaseCounter, IProgressable
 {
@@ -23,10 +24,8 @@ public class CuttingCounter : BaseCounter, IProgressable
             {
                 if(GetRecipe(player.KitchenObject.ObjectData, out CuttingRecipeSO recipe)) // can cutting
                 {
-                    player.KitchenObject.SetKitchenObjectParent(this); // change parent
-                    cuttingProgress = 0;
-
-                    OnProgressChangedEvent?.Invoke(cuttingProgress, recipe.cuttingProgress, true);
+                    player.KitchenObject.SetKitchenObjectParent(this); // change parent  
+                    InteractLogicPlaceObjectServerRpc();                  
                 }
             }
             else // player grabbed nothing
@@ -41,7 +40,7 @@ public class CuttingCounter : BaseCounter, IProgressable
                 if(player.KitchenObject.TryGetPlate(out PlateKitchenObject plate))
                 {
                     if(plate.TryAddIngredient(KitchenObject.ObjectData))
-                        KitchenObject.DestroySelf();
+                        KitchenObject.DestroyKitchenObject(KitchenObject);
                 }
             }
             else // player empty
@@ -53,23 +52,62 @@ public class CuttingCounter : BaseCounter, IProgressable
 
     public override void InteractAlternate(Player player)
     {
-        if(IsEmpty == false && GetRecipe(KitchenObject.ObjectData, out CuttingRecipeSO recipe)) // has kitchen object and recipe
+        if(IsEmpty == false && GetRecipeIndex(KitchenObject.ObjectData, out int recipeIndex)) // has kitchen object and recipe
         {
-            cuttingProgress++;
-            OnAnyCutEvent?.Invoke(this);
-            OnProgressChangedEvent?.Invoke(cuttingProgress, recipe.cuttingProgress, false);
-
-            if(cuttingProgress >= recipe.cuttingProgress)
-            {
-                KitchenObject.DestroySelf();
-                KitchenObject.SpawnKitchenObject(recipe.output, this);
-            }
+            CutObjectServerRpc(recipeIndex);
+            CheckProgressDoneServerRpc(recipeIndex);
         }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void InteractLogicPlaceObjectServerRpc()
+    {
+        InteractLogicPlaceObjectClientRpc();
+    }
+
+    [ClientRpc]
+    private void InteractLogicPlaceObjectClientRpc()
+    {
+        cuttingProgress = 0;
+        OnProgressChangedEvent?.Invoke(0f, 1f, true);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void CutObjectServerRpc(int recipeIndex)
+    {
+        CutObjectClientRpc(recipeIndex);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void CheckProgressDoneServerRpc(int recipeIndex)
+    {
+        CuttingRecipeSO recipe = cuttingRecipes[recipeIndex];
+        if (cuttingProgress >= recipe.cuttingProgress)
+        {
+            KitchenObject.DestroyKitchenObject(KitchenObject);
+            KitchenObject.SpawnKitchenObject(recipe.output, this);
+        }
+    }
+
+    [ClientRpc]
+    private void CutObjectClientRpc(int recipeIndex)
+    {
+        CuttingRecipeSO recipe = cuttingRecipes[recipeIndex];
+
+        cuttingProgress++;
+        OnAnyCutEvent?.Invoke(this);
+        OnProgressChangedEvent?.Invoke(cuttingProgress, recipe.cuttingProgress, false);
     }
 
     private bool GetRecipe(KitchenObjectSO input, out CuttingRecipeSO recipe)
     {
         recipe = cuttingRecipes.Find(i => i.input == input);
         return (recipe != null);
+    }
+
+    private bool GetRecipeIndex(KitchenObjectSO input, out int index)
+    {
+        index = cuttingRecipes.FindIndex(i => i.input == input);
+        return (index != -1);
     }
 }

@@ -1,8 +1,9 @@
 using System;
 using System.Collections;
+using Unity.Netcode;
 using UnityEngine;
 
-public class BaseCounter : MonoBehaviour, IKitchenObjectParent
+public class BaseCounter : NetworkBehaviour, IKitchenObjectParent
 {
     [SerializeField] protected Transform counterTopPoint;
     public Transform ParentTrm => counterTopPoint;
@@ -27,7 +28,7 @@ public class BaseCounter : MonoBehaviour, IKitchenObjectParent
 
     public virtual void ClearKitchenObject()
     {
-        SetKitchenObject(null);
+        kitchenObject = null;
     }
 
     public virtual void Interact(Player player) {}

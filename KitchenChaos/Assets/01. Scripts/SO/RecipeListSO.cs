@@ -5,4 +5,5 @@ using UnityEngine;
 public class RecipeListSO : ScriptableObject
 {
     public List<RecipeSO> recipes;
+    public int Count => recipes.Count;
 }

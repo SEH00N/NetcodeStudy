@@ -25,7 +25,7 @@ public class AudioManager : MonoBehaviour
         CuttingCounter.OnAnyCutEvent += HandleCutting;
         BaseCounter.OnAnyPlacedEvent += HandlePlaced;
         TrashCounter.OnAnyTrashedEvent += HandleTrash;
-        DEFINE.Player.OnPickSomethingEvent += HandlePicking;
+        Player.OnAnyPickSomethingEvent += HandlePicking;
     }
 
     public void PlayAudio(AudioClip audioClip, Vector3 position, float volume = 1f)
@@ -51,12 +51,12 @@ public class AudioManager : MonoBehaviour
         PlayAudio(audioAssets.objectDrop, counter.transform.position, 1f);
     }
 
-    private void HandlePicking(KitchenObject kitchenObject)
+    private void HandlePicking(KitchenObject kitchenObject, Player player)
     {
         if(kitchenObject == null)
             return;
 
-        PlayAudio(audioAssets.objectPickup, DEFINE.Player.transform.position, 1f);
+        PlayAudio(audioAssets.objectPickup, player.transform.position, 1f);
     }
 
     private void HandleCutting(CuttingCounter counter)
@@ -64,10 +64,10 @@ public class AudioManager : MonoBehaviour
         PlayAudio(audioAssets.chop, counter.transform.position, 1f);
     }
 
-    private void HandleDelivered(DeliveryCounter counter, bool success)
+    private void HandleDelivered(Vector3 position, bool success)
     {
         AudioClip[] clips = success ? audioAssets.deliverySuccess : audioAssets.deliveryFail;
-        PlayAudio(clips, counter.transform.position, 1f);
+        PlayAudio(clips, position, 1f);
     }
 
     public void ChangeVolume()

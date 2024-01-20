@@ -1,7 +1,8 @@
 using System;
 using UnityEngine;
+using Unity.Netcode;
 
-public class Player : MonoBehaviour, IKitchenObjectParent
+public class Player : NetworkBehaviour, IKitchenObjectParent
 {
     [SerializeField] InputReaderSO inputReader = null;
 
@@ -17,8 +18,10 @@ public class Player : MonoBehaviour, IKitchenObjectParent
     [SerializeField] float interactDistance = 2f;
     [SerializeField] LayerMask counterLayer;
 
+    public static event Action OnAnyPlayerSpawned;
+    public static event Action<KitchenObject, Player> OnAnyPickSomethingEvent;
+
     public event Action<BaseCounter> OnSelectedCounterChanged;
-    public event Action<KitchenObject> OnPickSomethingEvent;
 
     public bool IsWalking { get; private set; }
 
@@ -33,19 +36,36 @@ public class Player : MonoBehaviour, IKitchenObjectParent
     private Vector3 lastInteractDirection;
     private BaseCounter selectedCounter;
 
+    public override void OnNetworkSpawn()
+    {
+        if(IsOwner)
+            DEFINE.LocalPlayer = this;
+
+        OnAnyPlayerSpawned?.Invoke();
+    }
+
     private void Start()
     {
+        if(IsOwner == false)
+            return;
+
         inputReader.OnInteractEvent += HandleOnInteract;
         inputReader.OnInteractAlternateEvent += HandleOnInteractAlternate;
     }
 
     private void Update()
     {
+        if (IsOwner == false)
+            return;
+
         DetectCounter();
     }
 
 	private void FixedUpdate()
     {
+        if (IsOwner == false)
+            return;
+
         HandleMovement();
     }
 
@@ -81,7 +101,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
         }
 
         transform.forward = Vector3.Slerp(transform.forward, moveDir, Time.fixedDeltaTime * rotateSpeed);
-        IsWalking = moveDir.sqrMagnitude > 0f;
+        IsWalking = moveDir.sqrMagnitude != 0f;
     }
 
     private void HandleOnInteract()
@@ -131,11 +151,18 @@ public class Player : MonoBehaviour, IKitchenObjectParent
     public void SetKitchenObject(KitchenObject kitchenObject)
     {
         this.kitchenObject = kitchenObject;
-        OnPickSomethingEvent?.Invoke(kitchenObject);
+        OnAnyPickSomethingEvent?.Invoke(kitchenObject, this);
     }
 
     public void ClearKitchenObject()
     {
-        SetKitchenObject(null);
+        // SetKitchenObject(null);
+        kitchenObject = null;
+    }
+
+    public static void ResetStaticData()
+    {
+        OnAnyPlayerSpawned = null;
+        OnAnyPickSomethingEvent = null;
     }
 }

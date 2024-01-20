@@ -2,8 +2,10 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using Unity.Netcode;
+using Random = UnityEngine.Random;
 
-public class DeliveryManager : MonoBehaviour
+public class DeliveryManager : NetworkBehaviour
 {
     private static DeliveryManager instance = null;
     public static DeliveryManager Instance {
@@ -20,7 +22,7 @@ public class DeliveryManager : MonoBehaviour
     public event Action<RecipeSO> OnRecipeAddEvent;
     public event Action<int> OnRecipeRemoveEvent;
 
-    public event Action<DeliveryCounter, bool> OnDeliveredEvent;
+    public event Action<Vector3, bool> OnDeliveredEvent;
 
     private float recipeTimer = 0f;
     private float recipeCooldown = 4f;
@@ -34,8 +36,16 @@ public class DeliveryManager : MonoBehaviour
         waitingRecipes = new List<RecipeSO>();
     }
 
+    private void Start()
+    {
+        recipeTimer = recipeCooldown;
+    }
+
     private void Update()
     {
+        if(IsServer == false)
+            return;
+
         recipeTimer -= Time.deltaTime; 
         if(recipeTimer <= 0f)
         {
@@ -43,11 +53,19 @@ public class DeliveryManager : MonoBehaviour
 
             if(waitingRecipes.Count < recipeLimit)
             {
-                RecipeSO recipe = recipeList.recipes.PickRandom();
-                waitingRecipes.Add(recipe);
-                OnRecipeAddEvent?.Invoke(recipe);
+                int reandomIndex = Random.Range(0, recipeList.Count);
+                SpawnNewRecipeClientRpc(reandomIndex);
             }
         }
+    }
+
+    [ClientRpc]
+    private void SpawnNewRecipeClientRpc(int randomIndex)
+    {
+        RecipeSO recipe = recipeList.recipes[randomIndex];
+
+        waitingRecipes.Add(recipe);
+        OnRecipeAddEvent?.Invoke(recipe);
     }
 
     public void DeliverRecipe(PlateKitchenObject plate, DeliveryCounter counter)
@@ -60,10 +78,7 @@ public class DeliveryManager : MonoBehaviour
                 if(r.recipe.Except(plate.Objects).ToList().Count == 0)
                 {
                     Debug.Log("Recipe Found");
-                    waitingRecipes.Remove(r);
-                    SucceedRecipesCount++;
-                    OnRecipeRemoveEvent?.Invoke(i);
-                    OnDeliveredEvent?.Invoke(counter, true);
+                    DeliverCorrectServerRpc(i, counter.transform.position);
                     
                     return;
                 }
@@ -71,6 +86,36 @@ public class DeliveryManager : MonoBehaviour
         }
 
         Debug.Log("Wrong Recipe");
-        OnDeliveredEvent?.Invoke(counter, false);
+        DeliverIncorrectServerRpc(counter.transform.position);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void DeliverIncorrectServerRpc(Vector3 position)
+    {
+        DeliverIncorrectClientRpc(position);
+    }
+
+    [ClientRpc]
+    private void DeliverIncorrectClientRpc(Vector3 position)
+    {
+        OnDeliveredEvent?.Invoke(position, false);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void DeliverCorrectServerRpc(int index, Vector3 position)
+    {
+        DeliverCorrectClientRpc(index, position);
+    }
+
+    [ClientRpc]
+    private void DeliverCorrectClientRpc(int index, Vector3 position)
+    {
+        RecipeSO recipe = waitingRecipes[index];
+        
+        SucceedRecipesCount++;
+        waitingRecipes.Remove(recipe);
+        
+        OnRecipeRemoveEvent?.Invoke(index);
+        OnDeliveredEvent?.Invoke(position, true);
     }
 }

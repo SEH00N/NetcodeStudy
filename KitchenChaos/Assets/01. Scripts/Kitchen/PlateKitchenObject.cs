@@ -11,8 +11,9 @@ public class PlateKitchenObject : KitchenObject
     
     public event Action<KitchenObjectSO> OnIngredientAddedEvent;
 
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
         objects = new List<KitchenObjectSO>();
     }
 

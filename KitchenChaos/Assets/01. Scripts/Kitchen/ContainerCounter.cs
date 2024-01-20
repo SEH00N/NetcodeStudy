@@ -1,4 +1,5 @@
 using System;
+using Unity.Netcode;
 using UnityEngine;
 
 public class ContainerCounter : BaseCounter
@@ -13,6 +14,18 @@ public class ContainerCounter : BaseCounter
             return;
 
         KitchenObject.SpawnKitchenObject(kitchenObjectData, player);
+        InteractLogicServerRpc();
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void InteractLogicServerRpc()
+    {
+        InteractLogicClientRpc();
+    }
+
+    [ClientRpc]
+    private void InteractLogicClientRpc()
+    {
         OnPlayerGraabedEvent?.Invoke();
     }
 }

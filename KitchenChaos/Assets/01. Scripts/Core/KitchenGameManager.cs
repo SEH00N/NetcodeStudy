@@ -32,10 +32,11 @@ public partial class KitchenGameManager : MonoBehaviour
 
     private void Start()
     {
-        state = State.WaitingToStart;
-        timer = startingTime;
-
+        // state = State.WaitingToStart;
+        // timer = startingTime;
         inputReader.OnPauseEvent += TogglePauseGame;
+
+        ChangeState(State.CountdownToStart);
     }
 
     private void Update()

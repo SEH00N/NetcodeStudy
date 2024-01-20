@@ -34,7 +34,7 @@ public partial class StoveCounter : BaseCounter, IProgressable
 
                 if (timer >= fryingRecipe.fryingTime)
                 {
-                    KitchenObject.DestroySelf();
+                    KitchenObject.DestroyKitchenObject(KitchenObject);
                     KitchenObject.SpawnKitchenObject(fryingRecipe.output, this);
 
                     GetRecipe(KitchenObject.ObjectData, out burningRecipe);
@@ -49,7 +49,7 @@ public partial class StoveCounter : BaseCounter, IProgressable
 
                 if (timer >= burningRecipe.burningTime)
                 {
-                    KitchenObject.DestroySelf();
+                    KitchenObject.DestroyKitchenObject(KitchenObject);
                     KitchenObject.SpawnKitchenObject(burningRecipe.output, this);
 
                     ChangeState(State.Burned);
@@ -88,7 +88,7 @@ public partial class StoveCounter : BaseCounter, IProgressable
                 {
                     if(plate.TryAddIngredient(KitchenObject.ObjectData))
                     {
-                        KitchenObject.DestroySelf();
+                        KitchenObject.DestroyKitchenObject(KitchenObject);
                         ChangeState(State.Idle);
                     }
                 }
