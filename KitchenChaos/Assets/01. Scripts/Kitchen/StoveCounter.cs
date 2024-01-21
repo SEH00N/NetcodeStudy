@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 public partial class StoveCounter : BaseCounter, IProgressable
@@ -10,52 +11,60 @@ public partial class StoveCounter : BaseCounter, IProgressable
     public event Action<State> OnStateChangedEvent;
     public event Action<float, float, bool> OnProgressChangedEvent;
 
-    private float timer = 0f;
+    private NetworkVariable<State> state = new NetworkVariable<State>();
+    private NetworkVariable<float> timer = new NetworkVariable<float>(0f);
     private FryingRecipeSO fryingRecipe;
     private BurningRecipeSO burningRecipe;
-    private State state;
+
+    public override void OnNetworkSpawn()
+    {
+        timer.OnValueChanged += HandleTimerValueChanged;
+        state.OnValueChanged += HandleStateValueChanged;
+    }
 
     private void Start()
     {
-        state = State.Idle;
+        if (IsServer == false)
+            return;
+
+        state.Value = State.Idle;
     }
 
     private void Update()
     {
+        if(IsServer == false)
+            return;
+
         if (IsEmpty)
             return;
 
-        switch (state)
+        switch (state.Value)
         {
             case State.Idle:
                 break;
             case State.Frying:
-                timer += Time.deltaTime;
+                timer.Value += Time.deltaTime;
 
-                if (timer >= fryingRecipe.fryingTime)
+                if (timer.Value >= fryingRecipe.fryingTime)
                 {
                     KitchenObject.DestroyKitchenObject(KitchenObject);
                     KitchenObject.SpawnKitchenObject(fryingRecipe.output, this);
 
-                    GetRecipe(KitchenObject.ObjectData, out burningRecipe);
+                    GetBurningRecipeIndex(KitchenObject.ObjectData, out int recipeIndex);
+                    SetBurningRecipeClientRpc(recipeIndex);
                     ChangeState(State.Fried);
                 }
-                else
-                    OnProgressChangedEvent?.Invoke(timer, fryingRecipe.fryingTime, false);
-
                 break;
             case State.Fried:
-                timer += Time.deltaTime;
+                timer.Value += Time.deltaTime;
 
-                if (timer >= burningRecipe.burningTime)
+                if (timer.Value >= burningRecipe.burningTime)
                 {
                     KitchenObject.DestroyKitchenObject(KitchenObject);
                     KitchenObject.SpawnKitchenObject(burningRecipe.output, this);
 
                     ChangeState(State.Burned);
                 }
-                else
-                    OnProgressChangedEvent?.Invoke(timer, burningRecipe.burningTime, false);
 
                 break;
             case State.Burned:
@@ -69,10 +78,10 @@ public partial class StoveCounter : BaseCounter, IProgressable
         {
             if(player.IsEmpty == false) // player grabbed something
             {
-                if(GetRecipe(player.KitchenObject.ObjectData, out fryingRecipe)) // can cutting
+                if(GetFryingRecipeIndex(player.KitchenObject.ObjectData, out int recipeIndex)) // can cutting
                 {
                     player.KitchenObject.SetKitchenObjectParent(this); // change parent
-                    ChangeState(State.Frying);
+                    SetFryingRecipeServerRpc(recipeIndex);
                 }
             }
             else // player grabbed nothing
@@ -89,37 +98,75 @@ public partial class StoveCounter : BaseCounter, IProgressable
                     if(plate.TryAddIngredient(KitchenObject.ObjectData))
                     {
                         KitchenObject.DestroyKitchenObject(KitchenObject);
-                        ChangeState(State.Idle);
+                        SetStateServerRpc(State.Idle);
                     }
                 }
             }
             else // player empty
             {
                 KitchenObject.SetKitchenObjectParent(player);
-                ChangeState(State.Idle);
+                SetStateServerRpc(State.Idle);
             }
         }
     }
 
+    [ServerRpc(RequireOwnership = false)]
+    private void SetStateServerRpc(State state)
+    {
+        ChangeState(state);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void SetFryingRecipeServerRpc(int recipeIndex)
+    {
+        SetFryingRecipeClientRpc(recipeIndex);
+        ChangeState(State.Frying);
+    }
+
+    [ClientRpc]
+    private void SetFryingRecipeClientRpc(int recipeIndex)
+    {
+        fryingRecipe = fryingRecipes[recipeIndex];
+    }
+
+    [ClientRpc]
+    private void SetBurningRecipeClientRpc(int recipeIndex)
+    {
+        burningRecipe = burningRecipes[recipeIndex];
+    }
+
     public void ChangeState(State state)
     {
-        timer = 0f;
-        OnStateChangedEvent?.Invoke(state);
+        timer.Value = 0f;
+        this.state.Value = state;
+    }
+
+    private void HandleTimerValueChanged(float previousValue, float newValue)
+    {
+        float divide = 1f;
+        if(state.Value == State.Frying)
+            divide = fryingRecipe != null ? fryingRecipe.fryingTime : 1f;
+        else if (state.Value == State.Fried)
+            divide = burningRecipe != null ? burningRecipe.burningTime : 1f;
+
+        OnProgressChangedEvent?.Invoke(newValue, divide, false);
+    }
+
+    private void HandleStateValueChanged(State previousValue, State newValue)
+    {
         OnProgressChangedEvent?.Invoke(0f, 1f, true);
-
-        this.state = state;
-
+        OnStateChangedEvent?.Invoke(newValue);
     }
 
-    private bool GetRecipe(KitchenObjectSO input, out FryingRecipeSO recipe)
+    private bool GetFryingRecipeIndex(KitchenObjectSO input, out int recipeIndex)
     {
-        recipe = fryingRecipes.Find(i => i.input == input);
-        return (recipe != null);
+        recipeIndex = fryingRecipes.FindIndex(i => i.input == input);
+        return (recipeIndex != -1);
     }
 
-    private bool GetRecipe(KitchenObjectSO input, out BurningRecipeSO recipe)
+    private bool GetBurningRecipeIndex(KitchenObjectSO input, out int recipeIndex)
     {
-        recipe = burningRecipes.Find(i => i.input == input);
-        return (recipe != null);
+        recipeIndex = burningRecipes.FindIndex(i => i.input == input);
+        return (recipeIndex != -1);
     }
 }

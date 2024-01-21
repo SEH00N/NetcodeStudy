@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 public class PlateKitchenObject : KitchenObject
@@ -24,10 +25,28 @@ public class PlateKitchenObject : KitchenObject
 
         if(result)
         {
-            objects.Add(kitchenObject);
-            OnIngredientAddedEvent?.Invoke(kitchenObject);
+            int index = GetObjectIndex(kitchenObject);
+            AddIngredientServerRpc(index);
         }
 
         return result;
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void AddIngredientServerRpc(int objectIndex)
+    {
+        AddIngredientClientRpc(objectIndex);
+    }
+
+    [ClientRpc]
+    private void AddIngredientClientRpc(int objectIndex)
+    {
+        objects.Add(validObjects[objectIndex]);
+        OnIngredientAddedEvent?.Invoke(validObjects[objectIndex]);
+    }
+
+    private int GetObjectIndex(KitchenObjectSO data)
+    {
+        return validObjects.IndexOf(data);
     }
 }
