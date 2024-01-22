@@ -46,6 +46,9 @@ public class DeliveryManager : NetworkBehaviour
         if(IsServer == false)
             return;
 
+        if(KitchenGameManager.Instance.GameState != KitchenGameManager.State.GamePlaying)
+            return;
+
         recipeTimer -= Time.deltaTime; 
         if(recipeTimer <= 0f)
         {

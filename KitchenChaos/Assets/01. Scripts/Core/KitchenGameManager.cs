@@ -1,50 +1,70 @@
 using System;
+using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
-public partial class KitchenGameManager : MonoBehaviour
+public partial class KitchenGameManager : NetworkBehaviour
 {
     public static KitchenGameManager Instance = null;
 
     [SerializeField] InputReaderSO inputReader;
 
     [Space(10f)]
-    [SerializeField] float startingTime = 1f;
+    // [SerializeField] float startingTime = 1f;
     [SerializeField] float countdownTime = 1f;
     [SerializeField] float playingTime = 1f;
 
     public event Action<State> OnStateChangedEvent;
-    public event Action<bool> OnGamePausedEvent;
+    public event Action<bool> OnLocalGamePausedEvent;
+    public event Action<bool> OnGlobalGamePausedEvent;
+    public event Action OnLocalPlayerReadyChangedEvent;
 
-    private State state;
-    public State GameState => state;
+    private NetworkVariable<State> state = new NetworkVariable<State>(State.WaitingToStart);
+    public State GameState => state.Value;
 
-    private float timer = 0f;
-    public float Timer => timer;
-    public float GamePlayingTimeNormalized => 1 - (timer / playingTime);
+    private bool isLocalPlayerReady = false;
+    public bool IsLocalPlayerReady => isLocalPlayerReady;
 
-    public bool GamePlaying => (state == State.GamePlaying);
-    public bool GamePaused {get; private set;} =false;
+    private NetworkVariable<float> timer = new NetworkVariable<float>(0f);
+    public float Timer => timer.Value;
+    public float GamePlayingTimeNormalized => 1 - (timer.Value / playingTime);
+
+    public bool GamePlaying => (state.Value == State.GamePlaying);
+    public bool IsLocalGamePaused {get; private set;} =false;
+    private NetworkVariable<bool> isGamePaused = new NetworkVariable<bool>(false);
+
+    private Dictionary<ulong, bool> playerReadies;
+    private Dictionary<ulong, bool> playerPauses;
+
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
+        state.OnValueChanged += HandleStateValueChanged;
+        isGamePaused.OnValueChanged += HandleGamePausedValueChanged;
+    }
 
     private void Awake()
     {
         Instance = this;
+        playerReadies = new Dictionary<ulong, bool>();
+        playerPauses = new Dictionary<ulong, bool>();
     }
 
     private void Start()
     {
-        // state = State.WaitingToStart;
-        // timer = startingTime;
         inputReader.OnPauseEvent += TogglePauseGame;
-
-        ChangeState(State.CountdownToStart);
+        inputReader.OnInteractEvent += HandleInteract;
     }
 
     private void Update()
     {
-        switch (state)
+        if(IsServer == false)
+            return;
+
+        switch (state.Value)
         {
             case State.WaitingToStart:
-                TimeOut(State.CountdownToStart, countdownTime);
+                // TimeOut(State.CountdownToStart, countdownTime);
                 break;
             case State.CountdownToStart:
                 TimeOut(State.GamePlaying, playingTime);
@@ -63,26 +83,90 @@ public partial class KitchenGameManager : MonoBehaviour
         
     }
 
+    private void HandleInteract()
+    {
+        if(state.Value == State.WaitingToStart)
+        {
+            isLocalPlayerReady = true;
+            OnLocalPlayerReadyChangedEvent?.Invoke();
+            SetPlayerReadyServerRpc();
+        }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void SetPlayerReadyServerRpc(ServerRpcParams serverRpcParams = default)
+    {
+        playerReadies[serverRpcParams.Receive.SenderClientId] = true;
+
+        bool allClientsReady = true;
+        foreach(ulong clientID in NetworkManager.Singleton.ConnectedClientsIds)
+        {
+            if((playerReadies.ContainsKey(clientID) == false) || (playerReadies[clientID] == false))
+            {
+                allClientsReady = false;
+                break;
+            }
+        }
+
+        if(allClientsReady)
+        {
+            timer.Value = countdownTime;
+            ChangeState(State.CountdownToStart);
+        }
+    }
+
     private void TimeOut(State nextState, float cooldown)
     {
-        timer -= Time.deltaTime;
-        if (timer <= 0f)
+        timer.Value -= Time.deltaTime;
+        if (timer.Value <= 0f)
         {
             ChangeState(nextState);
-            timer = cooldown;
+            timer.Value = cooldown;
         }
     }
 
     private void ChangeState(State nextState)
     {
-        state = nextState;
-        OnStateChangedEvent?.Invoke(state);
+        state.Value = nextState;
     }
-        
+
+    private void HandleStateValueChanged(State previousValue, State newValue)
+    {
+        OnStateChangedEvent?.Invoke(newValue);
+    }
+
     public void TogglePauseGame()
     {
-        GamePaused = !GamePaused;
-        Time.timeScale = GamePaused ? 0f : 1f;
-        OnGamePausedEvent?.Invoke(GamePaused);
+        IsLocalGamePaused = !IsLocalGamePaused;
+        PauseGameServerRpc(IsLocalGamePaused);
+        OnLocalGamePausedEvent?.Invoke(IsLocalGamePaused);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void PauseGameServerRpc(bool isPaused, ServerRpcParams serverRpcParams = default)
+    {
+        playerPauses[serverRpcParams.Receive.SenderClientId] = isPaused;
+        CheckGamePausedState();
+    }
+
+    private void CheckGamePausedState()
+    {
+        foreach(ulong clientID in NetworkManager.Singleton.ConnectedClientsIds)
+        {
+            if(playerPauses.ContainsKey(clientID) && playerPauses[clientID])
+            {
+                isGamePaused.Value = true;
+                return;
+            }
+        }
+    
+        // all players are unpaused
+        isGamePaused.Value = false;
+    }
+
+    private void HandleGamePausedValueChanged(bool previousValue, bool newValue)
+    {
+        Time.timeScale = isGamePaused.Value ? 0f : 1f;
+        OnGlobalGamePausedEvent?.Invoke(isGamePaused.Value);
     }
 }

@@ -30,7 +30,7 @@ public class OptionUI : MonoBehaviour
 
     private void Start()
     {
-        KitchenGameManager.Instance.OnGamePausedEvent += HandlePaused;
+        KitchenGameManager.Instance.OnLocalGamePausedEvent += HandlePaused;
 
         UpdateVisual();
         Display(false);

@@ -17,7 +17,7 @@ public class GamePauseUI : MonoBehaviour
         resumeButton.onClick.AddListener(HandleResume);
         optionButton.onClick.AddListener(HandleOption);
 
-        KitchenGameManager.Instance.OnGamePausedEvent += HandlePause;
+        KitchenGameManager.Instance.OnLocalGamePausedEvent += HandlePause;
         
         Display(false);
     }

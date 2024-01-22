@@ -44,7 +44,8 @@ GameObject:
   - component: {fileID: 7164220533578091990}
   - component: {fileID: 4513954549574747428}
   - component: {fileID: -311830074118655225}
-  m_Layer: 0
+  - component: {fileID: 1342596768638402771}
+  m_Layer: 7
   m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -80,7 +81,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 1676502179
+  GlobalObjectIdHash: 1506771970
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
   ActiveSceneSynchronization: 0
@@ -109,6 +110,14 @@ MonoBehaviour:
   counterLayer:
     serializedVersion: 2
     m_Bits: 64
+  collisionLayer:
+    serializedVersion: 2
+    m_Bits: 192
+  spawnPositions:
+  - {x: -2, y: 0, z: 0}
+  - {x: 2, y: 0, z: 0}
+  - {x: -2, y: 0, z: -2}
+  - {x: 2, y: 0, z: -2}
   kitchenObjectHoldPoint: {fileID: 8102913320937448497}
 --- !u!114 &4513954549574747428
 MonoBehaviour:
@@ -154,6 +163,27 @@ MonoBehaviour:
   InLocalSpace: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!65 &1342596768638402771
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3819564378702173680}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.7, y: 1, z: 0.7}
+  m_Center: {x: 0, y: 0.5, z: 0}
 --- !u!1001 &8911757730101117901
 PrefabInstance:
   m_ObjectHideFlags: 0
