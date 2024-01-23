@@ -50,6 +50,9 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
         }
 
         OnAnyPlayerSpawned?.Invoke();
+
+        if(IsServer)
+            NetworkManager.Singleton.OnClientDisconnectCallback += HandleClientDisconnect;
     }
 
     private void Start()
@@ -148,6 +151,14 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
         }
         else
             SetSelectedCounter(null);
+    }
+
+    private void HandleClientDisconnect(ulong clientID)
+    {
+        if(clientID == OwnerClientId && (IsEmpty == false))
+        {
+            KitchenObject.DestroyKitchenObject(KitchenObject);
+        }        
     }
 
     private void SetSelectedCounter(BaseCounter counter)

@@ -2,12 +2,14 @@ using System;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public partial class KitchenGameManager : NetworkBehaviour
 {
     public static KitchenGameManager Instance = null;
 
     [SerializeField] InputReaderSO inputReader;
+    [SerializeField] Transform playerPrefab;
 
     [Space(10f)]
     // [SerializeField] float startingTime = 1f;
@@ -32,6 +34,7 @@ public partial class KitchenGameManager : NetworkBehaviour
     public bool GamePlaying => (state.Value == State.GamePlaying);
     public bool IsLocalGamePaused {get; private set;} =false;
     private NetworkVariable<bool> isGamePaused = new NetworkVariable<bool>(false);
+    private bool autoCheckGamePausedState = false;
 
     private Dictionary<ulong, bool> playerReadies;
     private Dictionary<ulong, bool> playerPauses;
@@ -41,6 +44,12 @@ public partial class KitchenGameManager : NetworkBehaviour
         base.OnNetworkSpawn();
         state.OnValueChanged += HandleStateValueChanged;
         isGamePaused.OnValueChanged += HandleGamePausedValueChanged;
+
+        if(IsServer)
+        {
+            NetworkManager.Singleton.OnClientDisconnectCallback += HandleClientDisconnect;
+            NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += HandleLoadEventCompleted;
+        }
     }
 
     private void Awake()
@@ -73,14 +82,17 @@ public partial class KitchenGameManager : NetworkBehaviour
                 TimeOut(State.GameOver, 0f);
                 break;
             case State.GameOver:
-                HandleGameOver();
                 break;
         }
     }
 
-    private void HandleGameOver()
+    private void LateUpdate()
     {
-        
+        if(autoCheckGamePausedState == false)
+            return;
+
+        autoCheckGamePausedState = false;
+        CheckGamePausedState();
     }
 
     private void HandleInteract()
@@ -168,5 +180,19 @@ public partial class KitchenGameManager : NetworkBehaviour
     {
         Time.timeScale = isGamePaused.Value ? 0f : 1f;
         OnGlobalGamePausedEvent?.Invoke(isGamePaused.Value);
+    }
+
+    private void HandleClientDisconnect(ulong clientId)
+    {
+        autoCheckGamePausedState = true;
+    }
+
+    private void HandleLoadEventCompleted(string sceneName, LoadSceneMode loadSceneMode, List<ulong> clientsCompleted, List<ulong> clientsTimedOut)
+    {
+        foreach(ulong clientID in NetworkManager.Singleton.ConnectedClientsIds)
+        {
+            Transform playerInstance = Instantiate(playerPrefab);
+            playerInstance.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientID, true);
+        }
     }
 }

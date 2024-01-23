@@ -6,6 +6,8 @@ public static partial class Loader
     {
         MenuScene,
         GameScene,
-        LoadingScene
+        LoadingScene,
+        LobbyScene,
+        CharacterSelectScene
     }
 }

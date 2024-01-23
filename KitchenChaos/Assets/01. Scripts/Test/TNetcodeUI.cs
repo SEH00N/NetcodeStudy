@@ -16,13 +16,13 @@ public class TNetcodeUI : MonoBehaviour
 
     private void HandleHostClicked()
     {
-        NetworkManager.Singleton.StartHost();
+        KitchenGameMultiplayer.Instance.StartHost();
         Display(false);
     }
 
     private void HandleClientClicked()
     {
-        NetworkManager.Singleton.StartClient();
+        KitchenGameMultiplayer.Instance.StartClient();
         Display(false);
     }
 
