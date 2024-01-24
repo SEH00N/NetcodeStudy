@@ -22,6 +22,7 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
 
     [Space(10f), Header("Multiplayer")]
     [SerializeField] List<Vector3> spawnPositions;
+    [SerializeField] PlayerVisual playerVisual;
 
     public static event Action OnAnyPlayerSpawned;
     public static event Action<KitchenObject, Player> OnAnyPickSomethingEvent;
@@ -46,7 +47,8 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
         if(IsOwner)
         {
             DEFINE.LocalPlayer = this;
-            transform.position = spawnPositions[(int)OwnerClientId];
+            if(KitchenGameMultiplayer.Instance.GetPlayerIndexByID(OwnerClientId, out int playerIndex))
+                transform.position = spawnPositions[playerIndex];
         }
 
         OnAnyPlayerSpawned?.Invoke();
@@ -62,6 +64,9 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
 
         inputReader.OnInteractEvent += HandleOnInteract;
         inputReader.OnInteractAlternateEvent += HandleOnInteractAlternate;
+
+        if(KitchenGameMultiplayer.Instance.GetPlayerDataByID(OwnerClientId, out PlayerData playerData))
+            playerVisual.SetPlayerColorByID(playerData.colorID);
     }
 
     private void Update()

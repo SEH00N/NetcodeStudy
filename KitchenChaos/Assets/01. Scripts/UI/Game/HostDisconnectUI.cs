@@ -14,6 +14,11 @@ public class HostDisconnectUI : MonoBehaviour
         Display(false);
     }
 
+    private void OnDestroy()
+    {
+        NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnect;
+    }
+
     private void HandlePlayAgain()
     {
         NetworkManager.Singleton.Shutdown();
